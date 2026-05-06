@@ -1,0 +1,13 @@
+pandas
+numpy
+seaborn
+matplotlib
+scikit-learn>=1.2
+xgboost>=1.6
+Flask
+dill
+scipy
+wordcloud
+nltk
+jupyter
+ipykernel

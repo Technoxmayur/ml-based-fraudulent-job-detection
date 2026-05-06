@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analyse Job Posting – Fraud Detector</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header a { color: #e53935; text-decoration: none; font-size: 0.9rem; }
+    header h1 { font-size: 2rem; margin-top: 8px; }
+    header p  { color: #888; margin-top: 6px; }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ── Result banner ── */
+    .result-banner {
+      padding: 18px 24px;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .result-banner.danger  { background:#3b0000; border:1px solid #e53935; color:#ff6b6b; }
+    .result-banner.success { background:#003b00; border:1px solid #43a047; color:#66bb6a; }
+
+    /* ── Card ── */
+    .card {
+      background: #1a1d27;
+      border-radius: 16px;
+      padding: 36px;
+      border: 1px solid #2a2d3a;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #e53935;
+      margin-bottom: 24px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #2a2d3a;
+    }
+
+    .grid-2  { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 0.82rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 8px;
+      color: #e0e0e0;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #e53935;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: #e53935;
+      cursor: pointer;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(90deg, #e53935, #c62828);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(229,57,53,0.35);
+      margin-top: 8px;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(229,57,53,0.5);
+    }
+
+    @media(max-width:640px){
+      .grid-2,.grid-3{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/">← Back to Home</a>
+      <h1>🕵️ Job Posting Analyser</h1>
+      <p>Fill in the job details below to check if it's legitimate or fraudulent.</p>
+    </header>
+
+    <!-- Result banner (only shown after POST) -->
+    {% if results %}
+    <div class="result-banner {{ result_class }}">
+      {{ results }}
+    </div>
+    {% endif %}
+
+    <form action="/predictdata" method="post">
+
+      <!-- ── Job Details ──────────────────────────────────────────────────── -->
+      <div class="card">
+        <h2>📋 Job Details</h2>
+
+        <div class="field" style="margin-bottom:20px;">
+          <label>Job Title *</label>
+          <input type="text" name="title" placeholder="e.g. Senior Software Engineer" required/>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="field">
+            <label>Employment Type</label>
+            <select name="employment_type">
+              <option value="">— Select —</option>
+              <option>Full-time</option>
+              <option>Part-time</option>
+              <option>Contract</option>
+              <option>Temporary</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Industry</label>
+            <input type="text" name="industry" placeholder="e.g. Information Technology"/>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Required Experience</label>
+            <select name="required_experience">
+              <option value="">— Select —</option>
+              <option>Entry level</option>
+              <option>Mid-Senior level</option>
+              <option>Associate</option>
+              <option>Director</option>
+              <option>Executive</option>
+              <option>Internship</option>
+              <option>Not Applicable</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Required Education</label>
+            <select name="required_education">
+              <option value="">— Select —</option>
+              <option>Bachelor's Degree</option>
+              <option>Master's Degree</option>
+              <option>High School or equivalent</option>
+              <option>Some College Coursework Completed</option>
+              <option>Associate Degree</option>
+              <option>Certification</option>
+              <option>Doctorate</option>
+              <option>Unspecified</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Text Content ────────────────────────────────────────────────── -->
+      <div class="card">
+        <h2>📝 Posting Content</h2>
+
+        <div class="field" style="margin-bottom:20px;">
+          <label>Company Profile</label>
+          <textarea name="company_profile" placeholder="Describe the company — background, mission, size…"></textarea>
+        </div>
+
+        <div class="field" style="margin-bottom:20px;">
+          <label>Job Description *</label>
+          <textarea name="description" rows="5"
+            placeholder="Full job description — responsibilities, day-to-day tasks…" required></textarea>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="field">
+            <label>Requirements</label>
+            <textarea name="requirements" placeholder="Skills, qualifications required…"></textarea>
+          </div>
+          <div class="field">
+            <label>Benefits</label>
+            <textarea name="benefits" placeholder="Salary, perks, health insurance…"></textarea>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Function / Department</label>
+          <input type="text" name="function" placeholder="e.g. Engineering, Marketing, Sales"/>
+        </div>
+      </div>
+
+      <!-- ── Metadata ────────────────────────────────────────────────────── -->
+      <div class="card">
+        <h2>⚙️ Posting Metadata</h2>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="telecommuting" value="1"/>
+            This is a remote / telecommuting position
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="has_company_logo" value="1"/>
+            The company has a logo on the posting
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="has_questions" value="1"/>
+            The posting includes screening questions
+          </label>
+        </div>
+
+        <!-- Hidden fallback fields so 0 is sent when unchecked -->
+        <input type="hidden" name="telecommuting_default"    value="0"/>
+        <input type="hidden" name="has_company_logo_default" value="0"/>
+        <input type="hidden" name="has_questions_default"    value="0"/>
+      </div>
+
+      <button type="submit" class="submit-btn">🔍 Analyse Job Posting</button>
+    </form>
+  </div>
+
+</body>
+</html>
